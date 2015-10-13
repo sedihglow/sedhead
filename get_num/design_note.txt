@@ -1,0 +1,8 @@
+Since long long is not supported by C90, (-pedantic), can i #ifdef declaring a
+variable?
+
+#ifdef wordsize=64 (whatever it is, see stdint.h for example)
+long long res;
+#else
+long res
+#endif
