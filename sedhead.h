@@ -14,24 +14,24 @@
 #include <sys/types.h>
 #include <stdio.h>                  
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 #include <getopt.h>
 #include <time.h>
-#include <sys/time.h>
 
 
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* error handling functions */
 #endif
 #ifdef __SED_NUM__
-    /* header i used to convert strings to int types */
-    #include "get_num/get_num.h" 
+    #include "get_num/get_num.h"        /* convert strings to int types */
 #endif
 
 #ifdef __SED_LINUX__
     #include <sys/stat.h>
     #include <unistd.h>
     #include <fcntl.h>
+    #include <sys/time.h>
 #endif
 
 
@@ -88,16 +88,25 @@ typedef enum {false, true} Bool;
 /* clears the input buffer using variable char ch; and getchar (). */
 #define clear_buff(ch) while(((ch) = getchar()) != '\n' && (ch) != EOF)
 
-/* get a line of input from a buffer, clears input buffer if no '\n' was taken */
-#define getLineInput(input, max, filpntr, len)\
-{                                             \
-    char __ch__ = '\0'                        \
-    fgets((input),(max),(filpntr));           \
-    (len) = strlen((input)) - 1;              \
-    if(input[(len)] == '\n'){                 \
-        input[(len)] = '\0';}                 \
-    else{                                     \
-        clear_buff(__ch__); }                 \
+/* get 1 character from stdin using getchar, clear buffer afterwards if
+   needed */
+#define getChar(input)                \
+{                                     \
+    char _c_h_ = '\0';                \
+    if(((input) = getchar()) != '\n'){\
+        clear_buff(_c_h_);}}          \
+}
+
+/* get a line of input from a buffer, clears the buffer if required */
+#define getLineInput(input, max, fpntr, len)\
+{                                           \
+    char __c_h__ = '\0'                     \
+    fgets((input),(max),(fpntr));           \
+    (len) = strlen((input)) - 1;            \
+    if(input[(len)] == '\n'){               \
+        input[(len)] = '\0';}               \
+    else{                                   \
+        clear_buff(__c_h__); }              \
 } /* end getLineInput */
 
                     /* other */
