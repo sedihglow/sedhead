@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <time.h>
+#include <ctypes.h>
 
 
 #ifdef __SED_ERR__
@@ -94,8 +95,20 @@ typedef enum {false, true} Bool;
 {                                     \
     char _c_h_ = '\0';                \
     if(((input) = getchar()) != '\n'){\
-        clear_buff(_c_h_);}}          \
-}
+        clear_buff(_c_h_);}           \
+} /* end getChar */
+
+/* get a single character from stdin and loop untill input is correct 
+   note: sets the single character to a capital letter */
+#define yesNo(input, string, ...)                               \
+{                                                               \
+    do                                                          \
+    {                                                           \
+        printf((string), __VA_ARGS__);                          \
+        getChar((input));                                       \
+        (input) = toupper((input));                             \
+    }while(input != 'Y' && input != 'N');                       \
+} /* end getChar_check #}}} */
 
 /* get a line of input from a buffer, clears the buffer if required */
 #define getLineInput(input, max, fpntr, len)\
