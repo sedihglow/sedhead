@@ -1,7 +1,8 @@
 /*
     stuff i use for stuff.
 
-
+    TODO: FIND OUT WHAT PEOPLE ACTUALLY PREFER IN INDUSTRY, PARTICULARLY WITH
+          KERNAL OR SYSTEMS PROGRAMMING
     I really want to know how i should handle increments in for loops in 
     my macros.
         Have them pass an increment variable?
@@ -18,7 +19,6 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <time.h>
-#include <ctypes.h>
 
 
 #ifdef __SED_ERR__
