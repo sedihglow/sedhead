@@ -1,8 +1,8 @@
 /*
     stuff i use for stuff.
 
-    TODO: FIND OUT WHAT PEOPLE ACTUALLY PREFER IN INDUSTRY, PARTICULARLY WITH
-          KERNAL OR SYSTEMS PROGRAMMING
+    TODO: find out what people actually prefer in industry, particularly with
+          kernal or systems programming
     I really want to know how i should handle increments in for loops in 
     my macros.
         Have them pass an increment variable?
@@ -19,8 +19,11 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <time.h>
+#include <ctype.h>
 
 
+/* something is wrong this the following ifdef's. Havent worked it out yet.
+   Trying to get the to work with the hash_table.c program */
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* error handling functions */
 #endif
