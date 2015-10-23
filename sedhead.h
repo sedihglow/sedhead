@@ -1,13 +1,5 @@
 /*
     stuff i use for stuff.
-
-    TODO: find out what people actually prefer in industry, particularly with
-          kernal or systems programming
-    I really want to know how i should handle increments in for loops in 
-    my macros.
-        Have them pass an increment variable?
-                         ||
-        Have the mixed declaration and declare it with random __'s.
 */
 
 #ifndef _SED_HEAD_
@@ -88,15 +80,18 @@ typedef enum {false, true} Bool;
 
                     /* input */
 /* clears the input buffer using variable char ch; and getchar (). */
-#define clear_buff(ch) while(((ch) = getchar()) != '\n' && (ch) != EOF)
+#define clear_buff()                                    \
+{                                                       \
+    char _TR_SH_ = '\0';                                \
+    while(((ch) = getchar()) != '\n' && (ch) != EOF);   \
+} /* end clear_buff */
 
 /* get 1 character from stdin using getchar, clear buffer afterwards if
    needed */
 #define getChar(input)                \
 {                                     \
-    char _c_h_ = '\0';                \
     if(((input) = getchar()) != '\n'){\
-        clear_buff(_c_h_);}           \
+        clear_buff();}                \
 } /* end getChar */
 
 /* get a single character from stdin and loop untill input is correct 
@@ -114,32 +109,33 @@ typedef enum {false, true} Bool;
 /* get a line of input from a buffer, clears the buffer if required */
 #define getLineInput(input, max, fpntr, len)\
 {                                           \
-    char __c_h__ = '\0'                     \
     fgets((input),(max),(fpntr));           \
     (len) = strlen((input)) - 1;            \
     if(input[(len)] == '\n'){               \
         input[(len)] = '\0';}               \
     else{                                   \
-        clear_buff(__c_h__); }              \
+        clear_buff(); }                     \
 } /* end getLineInput */
 
                     /* other */
 /* create a bit mask for a given range of bits. start, end. (lsb,msb) */
-#define create_mask(increment, start, end, resMask)                         \
+#define create_mask(start, end, resMask)                                    \
 {                                                                           \
+    int32_t ___S_                                                           \
     if((start) > (end)){                                                    \
         errmsg("create_mask: start > end, no mask was generated.");}        \
                                                                             \
-    resMask = 0; /* just to make sure im not an idiot when i call this */   \
-    for((increment) = (start); i <= (end); ++(increment)){                  \
-        (resMask) |= 1 << increment;}                                       \
+    resMask = 0;                                                            \
+    for((___S_) = (start); i <= (end); ++(___S_)){                          \
+        (resMask) |= 1 << (___S_);}                                         \
 } /* end create_mask */
 
 /* adds all the ascii values in a character array together */
-#define sumChars(increment, array, size, res)                 \
+#define sumChars(array, size, res)                            \
 {                                                             \
-    for((increment) = 0; (increment) < (size), ++(increment)){\
-        (res) += (array[(increment)]);}                       \
+    int32_t ___NC_                                            \
+    for((___NC_) = 0; (___NC_) < (size), ++(___NC_)){         \
+        (res) += (array[(___NC_)]);}                          \
 } /* end sumChars */
 
 /* vectorizes a function funct, its C99 as fuck tho.
@@ -149,9 +145,9 @@ typedef enum {false, true} Bool;
    -funct only takes in one argument. */
 #define apply_funct(type, funct, ...)                      \
 {                                                          \
-    void *stopper = (int[]){0};                            \
+    void *stopper = (int32_t[]){0};                        \
     type **apply_list = (type*[]){__VA_ARGS__, stopper};   \
-    int __i_;                                              \
+    int32_t __GH_;                                         \
                                                            \
     for(__i_ = 0; apply_list[__i_] != stopper; ++__i_){    \
         (funct)(apply_list[__i_]);}                        \
