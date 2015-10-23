@@ -158,13 +158,13 @@ typedef enum {false, true} Bool;
     srandom(_SUM__);                                                    \
                                                                         \
     (string)[size-1] = '\0'; /* make sure there is a null at the end */ \
-    for((__K_U_) = 0; (__K_U_) < (size)-1; ++__K_U_)                    \
+    for((__K_U_) = (size)-1; (__K_U_) > -1; --__K_U_)                    \
     {                                                                   \
-        _N_CH_ = (string)[(__K_U_)];                                    \
         do                                                              \
         {                                                               \
             _N_CH_ = random() % 0x7f;                                   \
-        }while(_N_CH_ < 0x20 && _N_CH_ != 0);                           \
+        }while(_N_CH_ < 0x20 && _N_CH_ > 0x0);                          \
+        printf("\nafter while ch: %c\n", _N_CH_);                       \
         (string)[(__K_U_)] = _N_CH_;                                    \
     }                                                                   \
 } /* end gen_string */
