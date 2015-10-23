@@ -2,6 +2,21 @@
     stuff i use for stuff.
 */
 
+#ifdef __SED_ERR__
+    #include "err_handle/err_handle.h"  /* error handling functions */
+#endif
+#ifdef __SED_NUM__
+    #include "get_num/get_num.h"        /* convert strings to int types */
+#endif
+
+#ifdef __SED_LINUX__
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <sys/time.h>
+#endif
+
 #ifndef _SED_HEAD_
 #define _SED_HEAD_
 #include <sys/types.h>
@@ -12,21 +27,6 @@
 #include <getopt.h>
 #include <time.h>
 #include <ctype.h>
-
-
-#ifdef __SED_ERR__
-    #include "err_handle/err_handle.h"  /* error handling functions */
-#endif
-#ifdef __SED_NUM__
-    #include "get_num/get_num.h"        /* convert strings to int types */
-#endif
-
-#ifdef __SED_LINUX__
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <sys/time.h>
-#endif
 
 
 #ifndef __FL_CONSTS__
