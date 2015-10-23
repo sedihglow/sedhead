@@ -134,9 +134,31 @@ typedef enum {false, true} Bool;
 #define sumChars(array, size, res)                            \
 {                                                             \
     int32_t ___NC_;                                           \
+    (res) = 0;                                                \
     for((___NC_) = 0; (___NC_) < (size), ++(___NC_)){         \
         (res) += (array[(___NC_)]);}                          \
 } /* end sumChars */
+
+/* generated a random string, excluding 0x1 - 0x1f and 0x7f, places it in 
+   (string). mod value implicitly ignores 0x7f. */
+#define gen_string(string, size)                                        \
+{                                                                       \
+    char *__PL_ACE_ = NULL; /* pointer to use with string */            \
+    int32_t __K_E_ = 0;                                                 \
+    int32_t _SUM__ = 0;                                                 \
+                                                                        \
+    sumChars((string), (size), _SUM__);                                 \
+    srandom(__SUM__);                                                   \
+    (string)[size-1] = '\0'; /* make sure there is a null at the end */ \
+    for((__K_U_) = 0; (__K_U_) < (size)-1; ++i)                         \
+    {                                                                   \
+        __PL_ACE_ = &(string)[(__K_U_)];                                \
+        do                                                              \
+        {                                                               \
+            __PL_ACE_ = random() % 0x7f;                                \
+        }while(__PL_ACE_ < 0x20 && __PL_ACE_ != 0);                     \
+    }                                                                   \
+} /* end gen_string */
 
 /* vectorizes a function funct, its C99 as fuck tho.
    -Type is the type of pointer used. (VA_ARGS could be void for example.). 
