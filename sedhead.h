@@ -121,7 +121,7 @@ typedef enum {false, true} Bool;
 /* create a bit mask for a given range of bits. start, end. (lsb,msb) */
 #define create_mask(start, end, resMask)                                    \
 {                                                                           \
-    int32_t ___S_                                                           \
+    int32_t ___S_;                                                          \
     if((start) > (end)){                                                    \
         errmsg("create_mask: start > end, no mask was generated.");}        \
                                                                             \
@@ -133,7 +133,7 @@ typedef enum {false, true} Bool;
 /* adds all the ascii values in a character array together */
 #define sumChars(array, size, res)                            \
 {                                                             \
-    int32_t ___NC_                                            \
+    int32_t ___NC_;                                           \
     for((___NC_) = 0; (___NC_) < (size), ++(___NC_)){         \
         (res) += (array[(___NC_)]);}                          \
 } /* end sumChars */
