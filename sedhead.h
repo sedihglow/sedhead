@@ -142,7 +142,9 @@ typedef enum {false, true} Bool;
 /* generated a random string, excluding 0x1 - 0x1f and 0x7f, places it in 
    (string). mod value implicitly ignores 0x7f. 
    NOTE: If string is NULL, data will be allocated, set to zero, and 
-         random gets seeded with 0. */
+         random gets seeded with 0.
+         
+         The seed for gen_string is the string. */
 #define gen_string(string, size)                                        \
 {                                                                       \
     int32_t __K_U_ = 0;                                                 \
@@ -158,8 +160,8 @@ typedef enum {false, true} Bool;
     /* seed random using sumArr */                                      \
     srandom(_SUM__);                                                    \
                                                                         \
-    (string)[size-1] = '\0'; /* make sure there is a null at the end */ \
-    for((__K_U_) = (size)-1; (__K_U_) > -1; --__K_U_)                   \
+    (string)[(size)-1] = '\0'; /* make sure there is a null */          \
+    for((__K_U_) = (size)-2; (__K_U_) > -1; --__K_U_)                   \
     {                                                                   \
         do                                                              \
         {                                                               \
