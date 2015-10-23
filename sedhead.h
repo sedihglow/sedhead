@@ -22,8 +22,6 @@
 #include <ctype.h>
 
 
-/* something is wrong this the following ifdef's. Havent worked it out yet.
-   Trying to get the to work with the hash_table.c program */
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* error handling functions */
 #endif
