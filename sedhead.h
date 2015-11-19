@@ -1,5 +1,5 @@
 /*
-    stuff i used for stuff.
+    stuff i use for stuff.
 
 
     I really want to know how i should handle increments in for loops in 
@@ -24,6 +24,7 @@
 /*#define NDEBUG*/
 #include <assert.h>
 
+
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* error handling functions */
 #endif
@@ -36,11 +37,28 @@
     #include <unistd.h>
     #include <fcntl.h>
     #include <sys/time.h>
+
+    /* allocate an input buffer with a '\0' terminatior at the end */
+    #define allocInputBuff(buff)                                               \
+    {                                                                          \
+        ssize_t _retBytes = 0;                                                 \
+        if((_retBytes = read(fd, (void*) buff, IN_BUF_-1)) == -1){             \
+            errExit("alloc_buf(): read() failure");}                           \
+        (_retBytes < IN_BUF_-1) ? (buff[_retBytes] = '\0')                     \
+                                : (buff[IN_BUF_-1] = '\0');                    \
+    } 
+
+    /* reset the input buffer after first allocation */
+    #define setInputBuf(buff, bfPl)                                            \
+    {                                                                          \
+        alloc_buff(buff);                                                      \
+        bfPl = buff;                                                           \
+    } 
+
 #endif
 
 
-/* Float constants for little endian */
-#ifndef __FL_CONSTS__ 
+#ifndef __FL_CONSTS__
 #define __FL_CONSTS__
 /* Use memcpy to set a float value, causing the proper value to appear instead
    of the min/max. (example: Nan, -Nan, etc.), (memset gives improper results) */
@@ -132,6 +150,25 @@ typedef enum {false, true} Bool;
 } /* end getLineInput */
 
                     /* other */
+/* Copy a variable ammount of characters from a buffer based on a given position
+   and place in resStr based on a conditional. Terminating the resStr with a '\0'
+   value.  */
+#define getBufString(inBuf, bfPl, resStr, conditional)                         \
+{                                                                              \
+    int _TM_ = 0;                                                              \
+    for(_TM_ = 0; conditional; ++_TM_)                                         \
+    {                                                                          \
+        resStr[_TM_] = *bfPl;                                                  \
+        ++bfPl;                  /* increase buff placement */                 \
+        if(*bfPl == '\0'){ /* reached end of current buffer */                 \
+            setBuf(inBuf, bfPl);}                                              \
+    } /* end for */                                                            \
+    ++bfPl;                                                                    \
+    resStr[_TM_] = '\0';                                                       \
+    if(*bfPl == '\0'){ /* reached end of current buffer */                     \
+        setBuf(inBuf, bfPl);}                                                  \
+} 
+
 /* create a bit mask for a given range of bits. start, end. (lsb,msb) */
 #define create_mask(increment, start, end, resMask)                         \
 {                                                                           \
