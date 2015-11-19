@@ -1,5 +1,5 @@
 /*
-    stuff i use for stuff.
+    stuff i used for stuff.
 
 
     I really want to know how i should handle increments in for loops in 
@@ -38,7 +38,9 @@
     #include <sys/time.h>
 #endif
 
-#ifndef __FL_CONSTS__
+
+/* Float constants for little endian */
+#ifndef __FL_CONSTS__ 
 #define __FL_CONSTS__
 /* Use memcpy to set a float value, causing the proper value to appear instead
    of the min/max. (example: Nan, -Nan, etc.), (memset gives improper results) */
