@@ -51,7 +51,7 @@
     /* reset the input buffer after first allocation */
     #define setInputBuf(fd, buff, bfPl)                                        \
     {                                                                          \
-        allocInputbuff(fd, buff);                                                      \
+        allocInputbuff(fd, buff);                                              \
         bfPl = buff;                                                           \
     } /* end setInpuBuf */
 #endif
@@ -138,6 +138,7 @@ typedef enum {false, true} Bool;
     char __c_h__ = '\0';                                                       \
     if((input) == NULL){                                                       \
         (input) = (char*) malloc(sizeof(char)*max);}                           \
+    assert(input != NULL);                                                     \
                                                                                \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filepntr));                                           \
@@ -154,6 +155,7 @@ typedef enum {false, true} Bool;
 #define getBufString(fd, inBuf, bfPl, resStr, conditional)                     \
 {                                                                              \
     int _TM_ = 0;                                                              \
+    assert(bfPl != NULL);                                                      \
     for(_TM_ = 0; conditional; ++_TM_)                                         \
     {                                                                          \
         resStr[_TM_] = *bfPl;                                                  \
@@ -170,21 +172,21 @@ typedef enum {false, true} Bool;
                     /* other */
 
 /* create a bit mask for a given range of bits. start, end. (lsb,msb) */
-#define create_mask(increment, start, end, resMask)                         \
-{                                                                           \
-    if((start) > (end)){                                                    \
-        errmsg("create_mask: start > end, no mask was generated.");}        \
-                                                                            \
-    resMask = 0; /* just to make sure im not an idiot when i call this */   \
-    for((increment) = (start); i <= (end); ++(increment)){                  \
-        (resMask) |= 1 << increment;}                                       \
+#define create_mask(increment, start, end, resMask)                            \
+{                                                                              \
+    if((start) > (end)){                                                       \
+        errmsg("create_mask: start > end, no mask was generated.");}           \
+                                                                               \
+    resMask = 0; /* just to make sure im not an idiot when i call this */      \
+    for((increment) = (start); i <= (end); ++(increment)){                     \
+        (resMask) |= 1 << increment;}                                          \
 } /* end create_mask */
 
 /* adds all the ascii values in a character array together */
-#define sumChars(increment, array, size, res)                 \
-{                                                             \
-    for((increment) = 0; (increment) < (size), ++(increment)){\
-        (res) += (array[(increment)]);}                       \
+#define sumChars(increment, array, size, res)                                  \
+{                                                                              \
+    for((increment) = 0; (increment) < (size), ++(increment)){                 \
+        (res) += (array[(increment)]);}                                        \
 } /* end sumChars */
 
 /* vectorizes a function funct, its C99 as fuck tho.
@@ -192,14 +194,14 @@ typedef enum {false, true} Bool;
    -... is a variable argument list.
    -will execute every argument into the function.
    -funct only takes in one argument. */
-#define apply_funct(type, funct, ...)                      \
-{                                                          \
-    void *stopper = (int[]){0};                            \
-    type **apply_list = (type*[]){__VA_ARGS__, stopper};   \
-    int __i_;                                              \
-                                                           \
-    for(__i_ = 0; apply_list[__i_] != stopper; ++__i_){    \
-        (funct)(apply_list[__i_]);}                        \
+#define apply_funct(type, funct, ...)                                          \
+{                                                                              \
+    void *stopper = (int[]){0};                                                \
+    type **apply_list = (type*[]){__VA_ARGS__, stopper};                       \
+    int __i_;                                                                  \
+                                                                               \
+    for(__i_ = 0; apply_list[__i_] != stopper; ++__i_){                        \
+        (funct)(apply_list[__i_]);}                                            \
 } /* end apply_funct */
     
 /* apply free to every pointer given in the argument list using the
