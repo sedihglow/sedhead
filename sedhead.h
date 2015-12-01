@@ -134,7 +134,7 @@ typedef enum {false, true} Bool;
 /* get a line of input from a buffer, clears the buffer if required. Input
    must be dealloced or on the heap for compilation,
    NOTE: len becomes the length of the string WITHOUT the '\0' value. */
-#define getLineInput(input, max, filepntr, len)                                \
+#define getLineInput(input, max, filepntr, inlen)                              \
 {                                                                              \
     char __c_h__ = '\0';                                                       \
     if((input) == NULL){                                                       \
@@ -144,8 +144,8 @@ typedef enum {false, true} Bool;
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filepntr));                                           \
     (len) = strlen((input)) - 1;                                               \
-    if(input[(len)] == '\n'){                                                  \
-        input[(len)] = '\0';}                                                  \
+    if(input[(inLen)] == '\n'){                                                  \
+        input[(inLen)] = '\0';}                                                  \
     else{                                                                      \
         clear_buff(__c_h__); }                                                 \
 } /* end getLineInput */
