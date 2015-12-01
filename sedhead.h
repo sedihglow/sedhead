@@ -132,7 +132,8 @@ typedef enum {false, true} Bool;
 } /* end getChar_check #}}} */
 
 /* get a line of input from a buffer, clears the buffer if required. Input
-   must be dealloced or on the heap for compilation */
+   must be dealloced or on the heap for compilation,
+   NOTE: len becomes the length of the string WITHOUT the '\0' value. */
 #define getLineInput(input, max, filepntr, len)                                \
 {                                                                              \
     char __c_h__ = '\0';                                                       \
