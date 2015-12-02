@@ -143,9 +143,9 @@ typedef enum {false, true} Bool;
                                                                                \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filepntr));                                           \
-    (len) = strlen((input)) - 1;                                               \
-    if(input[(inLen)] == '\n'){                                                  \
-        input[(inLen)] = '\0';}                                                  \
+    (inLen) = strlen((input)) - 1;                                             \
+    if(input[(inLen)] == '\n'){                                                \
+        input[(inLen)] = '\0';}                                                \
     else{                                                                      \
         clear_buff(__c_h__); }                                                 \
 } /* end getLineInput */
