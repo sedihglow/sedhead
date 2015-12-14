@@ -163,7 +163,7 @@ typedef enum {false, true} Bool;
    - max   == int   , Max number of bytes to take in from file. 
    - filePntr == FILE*, the file pointer associated with the proper FD. 
    - inlen == the length of the string WITHOUT the '\0' value. */
-#define getLineInput_noClear(input, max, filePntr, inlen)                      \
+#define getLineInput_noClear(input, max, filePntr, inLen)                      \
 {                                                                              \
     char __c_h__ = '\0';                                                       \
     if((input) == NULL){                                                       \
