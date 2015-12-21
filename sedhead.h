@@ -49,11 +49,36 @@
         (_retBytes < IN_BUF_-1) ? (buff[_retBytes] = '\0')                     \
                                 : (buff[IN_BUF_-1] = '\0');                    \
     } /* end allocInputBuff */
-#endif
+
+    /* Copy a variable ammount of characters from a buffer based on a given position.
+       Place resulting string in resStr based on a given conditional. 
+       resStr will be '\0' terminated.
+       fd     == int  , File descriptor corresponding to inBuf.
+       inBuf  == char*, buffer to copy from. Must not be NULL.
+       resStr == char*, buffer to copy to.
+       conditional == The conditionals desired in the copy process.
+                      Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
+    #define getBufString(fd, inBuf, bfPl, resStr, conditional)                     \
+    {                                                                              \
+        int _TM_ = 0;                                                              \
+        assert(bfPl != NULL && inBuf != NULL);                                     \
+        for(_TM_ = 0; conditional; ++_TM_)                                         \
+        {                                                                          \
+            resStr[_TM_] = *bfPl;                                                  \
+            ++bfPl;                  /* increase buff placement */                 \
+            if(*bfPl == '\0'){       /* reached end of current buffer */           \
+                setInpuBuf(fd, inBuf, bfPl);}                                      \
+        } /* end for */                                                            \
+        ++bfPl;                                                                    \
+        resStr[_TM_] = '\0';                                                       \
+        if(*bfPl == '\0'){ /* reached end of current buffer */                     \
+            setInputBuf(fd, inBuf, bfPl);}                                         \
+    } /* end getBufString */
+    #endif
 
 
-#ifndef __FL_CONSTS__
-#define __FL_CONSTS__
+#ifndef _LIL_FL_CONSTS__
+#define _LIL_FL_CONSTS__
 /* Use memcpy to set a float value, causing the proper value to appear instead
    of the min/max. (example: Nan, -Nan, etc.), (memset gives improper results) */
 #define set_float(num, set)    memcpy(&num, &set, sizeof(num))
@@ -89,13 +114,15 @@
 #endif
 
                     /* bool */
-#ifdef true 
-#undef true
+#ifndef __SED_BOOL_
+    #ifdef true 
+    #undef true
+    #endif
+    #ifdef false 
+    #undef false 
+    #endif
+    typedef enum {false, true} Bool;
 #endif
-#ifdef false 
-#undef false 
-#endif
-typedef enum {false, true} Bool;
 
                     /* min/max */
 #define min(m,n) ((m) < (n) ? (m) : (n))
@@ -104,15 +131,18 @@ typedef enum {false, true} Bool;
                     /* input */
 /* clears the input buffer using variable char ch; and getchar ().
    - char ch , throw away character. */
-#define clear_buff(ch) while(((ch) = getchar()) != '\n' && (ch) != EOF)
+#define clear_buff()                                                           \
+{                                                                              \
+    char _CH_ = '\0';                                                          \
+    while((_CH_ = getchar()) != '\n' && _CH_ != EOF);                          \
+} /* end clear_buff */
 
 /* Get 1 character from stdin using getchar, clears input buffer.
    - input == char* , catches char from getchar(). */
 #define getChar(input)                                                         \
 {                                                                              \
-    char _c_h_ = '\0';                                                         \
     if(((input) = getchar()) != '\n'){                                         \
-        clear_buff(_c_h_);}                                                    \
+        clear_buff();}                                                         \
 } /* end getChar */
 
 /* Get a single character from stdin and loop untill input is correct. 
@@ -140,19 +170,14 @@ typedef enum {false, true} Bool;
    - inlen == the length of the string WITHOUT the '\0' value. */
 #define getLineInput(input, max, filePntr, inlen)                              \
 {                                                                              \
-    char __c_h__ = '\0';                                                       \
-    if((input) == NULL){                                                       \
-        (input) = (char*) malloc(sizeof(char)*max);}                           \
-    if((input) == NULL){                                                       \
-        errExit("getLineInput: Failed to allocate input");}                    \
-                                                                               \
+    assert(input != NULL);                                                     \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filePntr));                                           \
     (inLen) = strlen((input)) - 1;                                             \
     if(input[(inLen)] == '\n'){                                                \
         input[(inLen)] = '\0';}                                                \
     else{                                                                      \
-        clear_buff(__c_h__); }                                                 \
+        clear_buff(); }                                                        \
 } /* end getLineInput */
 
 /* Get a line of input from a buffer.
@@ -165,12 +190,7 @@ typedef enum {false, true} Bool;
    - inlen == the length of the string WITHOUT the '\0' value. */
 #define getLineInput_noClear(input, max, filePntr, inLen)                      \
 {                                                                              \
-    char __c_h__ = '\0';                                                       \
-    if((input) == NULL){                                                       \
-        (input) = (char*) malloc(sizeof(char)*max);}                           \
-    if((input) == NULL){                                                       \
-        errExit("getLineInput: Failed to allocate input");}                    \
-                                                                               \
+    assert(input != NULL);                                                     \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filePntr));                                           \
     (inLen) = strlen((input)) - 1;                                             \
@@ -178,30 +198,6 @@ typedef enum {false, true} Bool;
         input[(inLen)] = '\0';}                                                \
 } /* end getLineInput_noClear */
 
-/* Copy a variable ammount of characters from a buffer based on a given position.
-   Place resulting string in resStr based on a given conditional. 
-   resStr will be '\0' terminated.
-   fd     == int  , File descriptor corresponding to inBuf.
-   inBuf  == char*, buffer to copy from. Must not be NULL.
-   resStr == char*, buffer to copy to.
-   conditional == The conditionals desired in the copy process.
-                  Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-#define getBufString(fd, inBuf, bfPl, resStr, conditional)                     \
-{                                                                              \
-    int _TM_ = 0;                                                              \
-    assert(bfPl != NULL && inBuf != NULL);                                     \
-    for(_TM_ = 0; conditional; ++_TM_)                                         \
-    {                                                                          \
-        resStr[_TM_] = *bfPl;                                                  \
-        ++bfPl;                  /* increase buff placement */                 \
-        if(*bfPl == '\0'){       /* reached end of current buffer */           \
-            setInpuBuf(fd, inBuf, bfPl);}                                      \
-    } /* end for */                                                            \
-    ++bfPl;                                                                    \
-    resStr[_TM_] = '\0';                                                       \
-    if(*bfPl == '\0'){ /* reached end of current buffer */                     \
-        setInputBuf(fd, inBuf, bfPl);}                                         \
-} /* end getBufString */
 
                     /* other */
 
