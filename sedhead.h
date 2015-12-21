@@ -39,18 +39,24 @@
     #include <sys/time.h>
 
     /* Allocate an input buffer with a '\0' terminatior at the end.
+       If nothing is read, buff[0] = '\0'.
        fd    == int, File descriptor used for allocInputBuff()
-       buff  == char*, Buffer to be filled with character data from fd. */
-    #define allocInputBuff(fd, buff)                                           \
+       buff  == char*, Buffer to be filled with character data from fd.
+       nbyte == size_t, number of bytes to read, including room for '\0'. 
+                        (typically the size of buffer array) */
+    #define readInput(fd, buff, nByte)                                         \
     {                                                                          \
         ssize_t _retBytes = 0;                                                 \
-        if((_retBytes = read(fd, (void*) buff, IN_BUF_-1)) == -1){             \
+        --nByte; /* leave room for '\0' */                                     \
+        if((_retBytes = read(fd, (void*) buff, nByte)) == -1){                 \
             errExit("alloc_buf(): read() failure");}                           \
-        (_retBytes < IN_BUF_-1) ? (buff[_retBytes] = '\0')                     \
-                                : (buff[IN_BUF_-1] = '\0');                    \
-    } /* end allocInputBuff */
+        (_retBytes < nByte) ? (buff[_retBytes] = '\0')                         \
+                                : (buff[nByte] = '\0');                        \
+        ++nByte; /* set nByte back to original value */                        \
+    } /* end readInput */
 
-    /* Copy a variable ammount of characters from a buffer based on a given position.
+    /* Copy a variable ammount of characters from a buffer based on a given 
+       position.
        Place resulting string in resStr based on a given conditional. 
        resStr will be '\0' terminated.
        fd     == int  , File descriptor corresponding to inBuf.
@@ -58,23 +64,23 @@
        resStr == char*, buffer to copy to.
        conditional == The conditionals desired in the copy process.
                       Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-    #define getBufString(fd, inBuf, bfPl, resStr, conditional)                     \
-    {                                                                              \
-        int _TM_ = 0;                                                              \
-        assert(bfPl != NULL && inBuf != NULL);                                     \
-        for(_TM_ = 0; conditional; ++_TM_)                                         \
-        {                                                                          \
-            resStr[_TM_] = *bfPl;                                                  \
-            ++bfPl;                  /* increase buff placement */                 \
-            if(*bfPl == '\0'){       /* reached end of current buffer */           \
-                setInpuBuf(fd, inBuf, bfPl);}                                      \
-        } /* end for */                                                            \
-        ++bfPl;                                                                    \
-        resStr[_TM_] = '\0';                                                       \
-        if(*bfPl == '\0'){ /* reached end of current buffer */                     \
-            setInputBuf(fd, inBuf, bfPl);}                                         \
-    } /* end getBufString */
-    #endif
+    #define readBuff_strRet(fd, inBuf, bfPl, resStr, conditional)              \
+    {                                                                          \
+        int _TM_ = 0;                                                          \
+        assert(bfPl != NULL && inBuf != NULL);                                 \
+        for(_TM_ = 0; conditional; ++_TM_)                                     \
+        {                                                                      \
+            resStr[_TM_] = *bfPl;                                              \
+            ++bfPl;                  /* increase buff placement */             \
+            if(*bfPl == '\0'){       /* reached end of current buffer */       \
+                readInput(fd, inBuf, bfPl);}                                   \
+        } /* end for */                                                        \
+        ++bfPl;                                                                \
+        resStr[_TM_] = '\0';                                                   \
+        if(*bfPl == '\0'){ /* reached end of current buffer */                 \
+            readInput(fd, inBuf, bfPl);}                                       \
+    } /* end readBuff_strRet */
+#endif
 
 
 #ifndef _LIL_FL_CONSTS__
@@ -129,6 +135,7 @@
 #define max(m,n) ((m) > (n) ? (m) : (n))
 
                     /* input */
+
 /* clears the input buffer using variable char ch; and getchar ().
    - char ch , throw away character. */
 #define clear_buff()                                                           \
@@ -168,7 +175,7 @@
    - max   == int   , Max number of bytes to take in from file. 
    - filePntr == FILE*, the file pointer associated with the proper FD. 
    - inlen == the length of the string WITHOUT the '\0' value. */
-#define getLineInput(input, max, filePntr, inlen)                              \
+#define fgetsInput(input, max, filePntr, inlen)                                \
 {                                                                              \
     assert(input != NULL);                                                     \
     memset((input), '\0', max);                                                \
@@ -178,7 +185,7 @@
         input[(inLen)] = '\0';}                                                \
     else{                                                                      \
         clear_buff(); }                                                        \
-} /* end getLineInput */
+} /* end lineInput */
 
 /* Get a line of input from a buffer.
    Does NOT clear the input buffer.
@@ -188,7 +195,7 @@
    - max   == int   , Max number of bytes to take in from file. 
    - filePntr == FILE*, the file pointer associated with the proper FD. 
    - inlen == the length of the string WITHOUT the '\0' value. */
-#define getLineInput_noClear(input, max, filePntr, inLen)                      \
+#define fgetsInput_noClear(input, max, filePntr, inLen)                        \
 {                                                                              \
     assert(input != NULL);                                                     \
     memset((input), '\0', max);                                                \
@@ -196,7 +203,30 @@
     (inLen) = strlen((input)) - 1;                                             \
     if(input[(inLen)] == '\n'){                                                \
         input[(inLen)] = '\0';}                                                \
-} /* end getLineInput_noClear */
+} /* end lineInput_noClear */
+
+
+/* Reads nmemb number of elements of dataSize into buff from fstream.
+   fread is a binary read.
+   Checks for eof and errors after fread is called.
+   Does not place a null value, data is not garunteed as a char. 
+   If a terminating null is required, leave room in buff and manually add it
+   after the call to freadInput()
+   - buff == void*, buffer to place nmemb elements into
+   - dataSize == size_t, size of the binary data being read from stream.
+   - nmemb == size_t, number of items of dataSize to be read from fsteam.
+   - fstream == FILE*, file pointer of input stream.*/
+#define freadInput(buff, dataSize, nmemb, fstream)
+{                                                                              \
+        ssize_t _retBytes = 0;                                                 \
+        if((_retBytes = fread()) < nmemb){                                       \
+            /* check if EOF or error. If error, do error things. If EOF, then
+               do EOF things. */}
+}
+
+#define fgetsBuff_strRet()
+
+#define freadBuff_strRet()
 
 
                     /* other */
