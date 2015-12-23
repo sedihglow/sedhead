@@ -155,7 +155,7 @@
 } /* end clear_stdin */
 
 /* Get 1 character from stdin using getchar, clears input buffer.
-   - input == char* , catches char from getchar(). */
+   - input == char , catches char from getchar(). */
 #define getChar(input)                                                         \
 {                                                                              \
     if(((input) = getchar()) != '\n'){                                         \
@@ -163,8 +163,11 @@
 } /* end getChar */
 
 /* Get a single character from stdin and loop untill input is correct. 
-   NOTE: sets the single character to a capital letter.
-   - input  == char*, string to check for Y/N.
+   NOTE: > sets the single character to a capital letter.
+         > uses the above macro getChar(input), not getchar from the standard
+           lib. 
+           TODO: I will consider changing getChars name in the future
+   - input  == char, string to check for Y/N.
    - string == char*, message to print to the user via printf();.
    - ...    == ending variable length arguments placed in printf(string,...);. */
 #define yesNo(input, string, ...)                                              \
@@ -172,7 +175,7 @@
     do                                                                         \
     {                                                                          \
         printf((string), __VA_ARGS__);                                         \
-        getChar((input));                                                      \
+        getChar(input);                                                        \
         (input) = toupper((input));                                            \
     }while(input != 'Y' && input != 'N');                                      \
 } /* end getChar_check #}}} */
@@ -187,7 +190,7 @@
    - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
 #define fgetsInput(input, max, filePntr, inLen)                                \
 {                                                                              \
-    assert(input != NULL);                                                     \
+    assert(input != NULL && filePntr != NULL);                                 \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filePntr));                                           \
     (inLen) = strlen((input)) - 1;                                             \
@@ -207,7 +210,7 @@
    - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
 #define fgetsInput_noClear(input, max, filePntr, inLen)                        \
 {                                                                              \
-    assert(input != NULL);                                                     \
+    assert(input != NULL && filePntr != NULL);                                 \
     memset((input), '\0', max);                                                \
     fgets((input),(max),(filePntr));                                           \
     (inLen) = strlen((input)) - 1;                                             \
@@ -229,6 +232,7 @@
    - fstream == FILE*, file pointer of input stream.*/
 #define freadInput(buff, dataSize, nmemb, fstream)                             \
 {                                                                              \
+        assert(buff != NULL && fstream != NULL);                               \
         if(fread(buff, dataSize, nmemb, fstream) < nmemb)                      \
         {                                                                      \
             /* can ferror() tell you which error occured? Or is it just a      \
@@ -336,8 +340,11 @@
 #define sumChars(array, size, res)                                             \
 {                                                                              \
     int I_NC = 0;                                                              \
-    for(I_NC = 0; I_NC < (size), ++I_NC){                                      \
-        (res) += (array[I_NC]);}                                               \
+    if(array != NULL)                                                          \
+    {                                                                          \
+        for(I_NC = 0; I_NC < (size), ++I_NC){                                  \
+            (res) += (array[I_NC]);}                                           \
+    }                                                                          \
 } /* end sumChars */
 
 /* TODO: Adjust this macro or make an alternate that can call a function with
