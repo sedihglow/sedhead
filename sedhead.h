@@ -66,7 +66,7 @@
        NOTE: Typically used in specific steps or in a while loop. 
        - fd     == int  , File descriptor corresponding to inBuf.
        - inBuf  == char*, buffer to copy from. Must not be NULL.
-       - bfPl   == char*, the current location inside inBuf.
+       - bfPl   == char*, the current location inside inBuf. (init: bfPl = inBuf)
        - resStr == char*, buffer to copy to.
        - nbyte  == size_t, number of bytes to read, including room for '\0'. 
                         (typically the size of buffer array)
@@ -176,6 +176,9 @@
    - ...    == ending variable length arguments placed in printf(string,...);. */
 #define yesNo(input, string, ...)                                              \
 {                                                                              \
+    /* TODO: Find out what happens with a statment like the following:         \
+             assert("Some literal string" != NULL);                            \
+             - It doesn have an address... but is it NULL? awkward statment. */\
     do                                                                         \
     {                                                                          \
         printf((string), __VA_ARGS__);                                         \
@@ -222,6 +225,22 @@
         input[(inLen)] = '\0';}                                                \
 } /* end lineInput_noClear */
 
+/* Get a line of input from a buffer.
+   Does NOT clear the input buffer.
+   Does NOT remove newline.
+   Input must be dealloced or on the heap for compilation.
+   NOTE: Len becomes the length of the string WITHOUT the '\0' value.
+   - input    == char* , Pointer to fill with resulting string.
+   - max      == int   , Max number of bytes to take in from file. 
+   - filePntr == FILE* , the file pointer associated with the proper FD. 
+   - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
+#define fgetsInput_noClear_withNline(input, max, filePntr)                     \
+{                                                                              \
+    assert(input != NULL && filePntr != NULL);                                 \
+    memset((input), '\0', max);                                                \
+    fgets((input),(max),(filePntr));                                           \
+} /* end lineInput_noClear_withNline */
+
 
 /* Reads nmemb number of elements of dataSize into buff from fstream.
    fread is a binary read.
@@ -252,16 +271,16 @@
     resStr will be '\0' terminated.
     NOTE: inLen will be the length of the current buffer WITHOUT '\0'
           Typically used in specific steps or in a while loop. 
+          End when a '\n' is found. The end of the full line.
     - filePntr    == FILE* , File pointer corresponding to inBuf.
     - inBuf       == char* , buffer to copy from. Must not be NULL.
     - max         == int   , Max number of bytes to take in from file.
                              (typically the size of the buffer array)
-    - inLen       == size_t, the length of the string WITHOUT the '\0' value.
     - bfPl        == char* , the current location inside inBuf.
     - resStr      == char* , buffer to copy to.
     - conditional == The conditionals desired in the copy process.
                      Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-#define fgets_nextFullLine(filePntr, inBuf, max, inLen, bfPl, resStr, conditional)\
+#define fgets_nextFullLine(filePntr, inBuf, max, bfPl, resStr, conditional)\
 {                                                                              \
     int _TM_ = 0;                                                              \
     assert(filePntr != NULL && resStr != NULL && bfPl != NULL && inBuf != NULL);\
@@ -271,7 +290,7 @@
         ++bfPl;                  /* increase buff placement */                 \
         if(*bfPl == '\0' && filePntr != stdin)                                 \
         {   /* set buffer */                                                   \
-            fgetsInput(inBuf, max, filePntr, inLen);                           \
+            fgetsInput_noClear_withNline(inBuf, max, filePntr);                \
             bfPl = inBuf;                                                      \
         }                                                                      \
     } /* end for */                                                            \
@@ -279,7 +298,7 @@
     resStr[_TM_] = '\0';                                                       \
     if(*bfPl == '\0' && filePntr != stdin)                                     \
     {   /* set buffer */                                                       \
-        fgetsInput(inBuf, max, filePntr, inLen);                               \
+        fgetsInput_noClear_withNline(inBuf, max, filePntr);                    \
         bfPl = inBuf;                                                          \
     }                                                                          \
 }
