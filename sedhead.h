@@ -7,6 +7,9 @@
         Have them pass an increment variable?
                          ||
         Have the mixed declaration and declare it with random __'s.
+
+    I just need to research how mixed declarations are implemented by
+    the compilers that do it, and how certian standards handle it.
 */
 
 #ifndef _SED_HEAD_
