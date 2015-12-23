@@ -296,7 +296,7 @@
     } /* end for */                                                            \
     ++bfPl;                                                                    \
     resStr[_TM_] = '\0';                                                       \
-    if(*bfPl == '\0' && filePntr != stdin)                                     \
+    if(*bfPl == '\0' && filePntr != stdin && *bfPl != '\n')                    \
     {   /* set buffer */                                                       \
         fgetsInput_noClear_withNline(inBuf, max, filePntr);                    \
         bfPl = inBuf;                                                          \
