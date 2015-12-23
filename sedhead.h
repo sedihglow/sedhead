@@ -11,6 +11,7 @@
 
 #ifndef _SED_HEAD_
 #define _SED_HEAD_
+
 #include <sys/types.h>
 #include <stdio.h>                  
 #include <stdlib.h>
@@ -20,10 +21,10 @@
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
+#include <errno.h>
 
 /*#define NDEBUG*/
 #include <assert.h>
-
 
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* Error handling functions. */
@@ -61,24 +62,33 @@
        resStr will be '\0' terminated.
        fd     == int  , File descriptor corresponding to inBuf.
        inBuf  == char*, buffer to copy from. Must not be NULL.
+       bfPl   == char*, the current location inside inBuf.
        resStr == char*, buffer to copy to.
+       nbyte  == size_t, number of bytes to read, including room for '\0'. 
+                        (typically the size of buffer array)
        conditional == The conditionals desired in the copy process.
                       Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-    #define readBuff_strRet(fd, inBuf, bfPl, resStr, conditional)              \
+    #define readBuff_strRet(fd, inBuf, bfPl, nByte, resStr, conditional)       \
     {                                                                          \
         int _TM_ = 0;                                                          \
-        assert(bfPl != NULL && inBuf != NULL);                                 \
+        assert(resStr != NULL && bfPl != NULL && inBuf != NULL);               \
         for(_TM_ = 0; conditional; ++_TM_)                                     \
         {                                                                      \
             resStr[_TM_] = *bfPl;                                              \
             ++bfPl;                  /* increase buff placement */             \
-            if(*bfPl == '\0'){       /* reached end of current buffer */       \
-                readInput(fd, inBuf, bfPl);}                                   \
+            if(*bfPl == '\0')                                                  \
+            {   /* reached end of current buffer */                            \
+                readInput(fd, inBuf, nByte);                                   \
+                bfPl = inBuf;                                                  \
+            }                                                                  \
         } /* end for */                                                        \
         ++bfPl;                                                                \
         resStr[_TM_] = '\0';                                                   \
-        if(*bfPl == '\0'){ /* reached end of current buffer */                 \
-            readInput(fd, inBuf, bfPl);}                                       \
+        if(*bfPl == '\0')                                                      \
+        {   /* reached end of current buffer */                                \
+            readInput(fd, inBuf, nByte);                                       \
+            bfPl = inBuf;                                                      \
+        }                                                                      \
     } /* end readBuff_strRet */
 #endif
 
@@ -121,6 +131,7 @@
 
                     /* bool */
 #ifndef __SED_BOOL_
+#define __SED_BOOL_
     #ifdef true 
     #undef true
     #endif
@@ -136,20 +147,19 @@
 
                     /* input */
 
-/* clears the input buffer using variable char ch; and getchar ().
-   - char ch , throw away character. */
-#define clear_buff()                                                           \
+/* clears the input buffer using variable char ch; and getchar ().*/
+#define clear_stdin()                                                          \
 {                                                                              \
     char _CH_ = '\0';                                                          \
     while((_CH_ = getchar()) != '\n' && _CH_ != EOF);                          \
-} /* end clear_buff */
+} /* end clear_stdin */
 
 /* Get 1 character from stdin using getchar, clears input buffer.
    - input == char* , catches char from getchar(). */
 #define getChar(input)                                                         \
 {                                                                              \
     if(((input) = getchar()) != '\n'){                                         \
-        clear_buff();}                                                         \
+        clear_stdin();}                                                        \
 } /* end getChar */
 
 /* Get a single character from stdin and loop untill input is correct. 
@@ -171,11 +181,11 @@
    Clears the buffer if required. 
    Input must be dealloced or on the heap for compilation.
    NOTE: Len becomes the length of the string WITHOUT the '\0' value.
-   - input == char* , Pointer to fill with resulting string.
-   - max   == int   , Max number of bytes to take in from file. 
+   - input    == char* , Pointer to fill with resulting string.
+   - max      == int   , Max number of bytes to take in from file. 
    - filePntr == FILE*, the file pointer associated with the proper FD. 
-   - inlen == the length of the string WITHOUT the '\0' value. */
-#define fgetsInput(input, max, filePntr, inlen)                                \
+   - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
+#define fgetsInput(input, max, filePntr, inLen)                                \
 {                                                                              \
     assert(input != NULL);                                                     \
     memset((input), '\0', max);                                                \
@@ -184,17 +194,17 @@
     if(input[(inLen)] == '\n'){                                                \
         input[(inLen)] = '\0';}                                                \
     else{                                                                      \
-        clear_buff(); }                                                        \
+        clear_stdin(); }                                                       \
 } /* end lineInput */
 
 /* Get a line of input from a buffer.
    Does NOT clear the input buffer.
    Input must be dealloced or on the heap for compilation.
    NOTE: Len becomes the length of the string WITHOUT the '\0' value.
-   - input == char* , Pointer to fill with resulting string.
-   - max   == int   , Max number of bytes to take in from file. 
+   - input    == char* , Pointer to fill with resulting string.
+   - max      == int   , Max number of bytes to take in from file. 
    - filePntr == FILE*, the file pointer associated with the proper FD. 
-   - inlen == the length of the string WITHOUT the '\0' value. */
+   - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
 #define fgetsInput_noClear(input, max, filePntr, inLen)                        \
 {                                                                              \
     assert(input != NULL);                                                     \
@@ -211,29 +221,102 @@
    Checks for eof and errors after fread is called.
    Does not place a null value, data is not garunteed as a char. 
    If a terminating null is required, leave room in buff and manually add it
-   after the call to freadInput()
+   after the call to freadInput().
+   Does not clear the input buffer.
    - buff == void*, buffer to place nmemb elements into
    - dataSize == size_t, size of the binary data being read from stream.
    - nmemb == size_t, number of items of dataSize to be read from fsteam.
    - fstream == FILE*, file pointer of input stream.*/
-#define freadInput(buff, dataSize, nmemb, fstream)
+#define freadInput(buff, dataSize, nmemb, fstream)                             \
 {                                                                              \
-        ssize_t _retBytes = 0;                                                 \
-        if((_retBytes = fread()) < nmemb){                                       \
-            /* check if EOF or error. If error, do error things. If EOF, then
-               do EOF things. */}
+        if(fread(buff, dataSize, nmemb, fstream) < nmemb)                      \
+        {                                                                      \
+            /* can ferror() tell you which error occured? Or is it just a      \
+               general, yes some unknown error has occured? */                 \
+            if(ferror() != 0){                                                 \
+                noerrExit("fread() failure.");}                                \
+        }                                                                      \
 }
 
-#define fgetsBuff_strRet()
+/*  Copy a variable ammount of characters from a buffer based on a given 
+    position.
+    Place resulting string in resStr based on a given conditional. 
+    resStr will be '\0' terminated.
+    NOTE: inLen will be the length of the current buffer WITHOUT '\0'
+    - filePntr    == FILE*  , File pointer corresponding to inBuf.
+    - inBuf       == char*, buffer to copy from. Must not be NULL.
+    - max         == int   , Max number of bytes to take in from file.
+                           (typically the size of the buffer array)
+    - inLen       == the length of the string WITHOUT the '\0' value.
+    - bfPl        == char*, the current location inside inBuf.
+    - resStr      == char*, buffer to copy to.
+    - conditional == The conditionals desired in the copy process.
+                     Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
+#define fgetsBuff_strRet(filePntr, inBuf, max, inLen, bfPl, resStr, conditional)\
+{                                                                              \
+    int _TM_ = 0;                                                              \
+    assert(filePntr != NULL && resStr != NULL && bfPl != NULL && inBuf != NULL);\
+    for(_TM_ = 0; conditional; ++_TM_)                                         \
+    {                                                                          \
+        resStr[_TM_] = *bfPl;                                                  \
+        ++bfPl;                  /* increase buff placement */                 \
+        if(*bfPl == '\0' && filePntr != stdin)                                 \
+        {   /* set buffer */                                                   \
+            fgetsInput(inBuf, max, filePntr, inLen);                           \
+            bfPl = inBuf;                                                      \
+        }                                                                      \
+    } /* end for */                                                            \
+    ++bfPl;                                                                    \
+    resStr[_TM_] = '\0';                                                       \
+    if(*bfPl == '\0' && filePntr != stdin)                                     \
+    {   /* set buffer */                                                       \
+        fgetsInput(inBuf, max, filePntr, inLen);                               \
+        bfPl = inBuf;                                                          \
+    }                                                                          \
+}
 
-#define freadBuff_strRet()
-
+/*  Copy a variable ammount of characters from a buffer based on a given 
+    position.
+    Place resulting string in resStr based on a given conditional. 
+    resStr will be '\0' terminated.
+    NOTE: inLen will be the length of the current buffer WITHOUT '\0'
+    - filePntr  == FILE*  , File pointer corresponding to inBuf.
+    - inBuf     == char*, buffer to copy from. Must not be NULL.
+    - dataSize  == size_t, size of the data used in fread.
+    - nmemb     == size_t, Max number of elements of dataSize to take from file.
+                           (typically the size of the buffer array)
+    - bfPl        == char*, the current location inside inBuf.
+    - resStr      == char*, buffer to copy to.
+    - conditional == The conditionals desired in the copy process.
+                     Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
+#define freadBuff_strRet(filePntr, inBuf, dataSize, nmemb, bfPl, resStr, conditional)\
+{                                                                              \
+    int _TM_ = 0;                                                              \
+    assert(filePntr != NULL && resStr != NULL && bfPl != NULL && inBuf != NULL);\
+    for(_TM_ = 0; conditional; ++_TM_)                                         \
+    {                                                                          \
+        resStr[_TM_] = *bfPl;                                                  \
+        ++bfPl;                  /* increase buff placement */                 \
+        if(*bfPl == '\0' && filePntr != stdin)                                 \
+        {   /* set buffer */                                                   \
+            freadInput(inBuf, dataSize, nmemb, filePntr);                      \
+            bfPl = inBuf;                                                      \
+        }                                                                      \
+    } /* end for */                                                            \
+    ++bfPl;                                                                    \
+    resStr[_TM_] = '\0';                                                       \
+    if(*bfPl == '\0' && filePntr != stdin)                                     \
+    {   /* set buffer */                                                       \
+        freadInput(inBuf, dataSize, nmemb, filePntr);                          \
+        bfPl = inBuf;                                                          \
+    }                                                                          \
+}
 
                     /* other */
 
 /* Create a bit mask for a given range of bits. start, end. (lsb,msb).
-   - start == int, Which bit from bit 0 to start the mask.
-   - end   == int, Which bit greater than start to end the mask.
+   - start   == int, Which bit from bit 0 to start the mask.
+   - end     == int, Which bit greater than start to end the mask.
    - resMask == int, Where the resulting bit mask will be placed */
 #define create_mask(start, end, resMask)                                       \
 {                                                                              \
