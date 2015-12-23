@@ -44,9 +44,9 @@
 
     /* Allocate an input buffer with a '\0' terminatior at the end.
        If nothing is read, buff[0] = '\0'.
-       fd    == int, File descriptor used for allocInputBuff()
-       buff  == char*, Buffer to be filled with character data from fd.
-       nbyte == size_t, number of bytes to read, including room for '\0'. 
+       - fd    == int   , File descriptor used for allocInputBuff()
+       - buff  == char* , Buffer to be filled with character data from fd.
+       - nbyte == size_t, number of bytes to read, including room for '\0'. 
                         (typically the size of buffer array) */
     #define readInput(fd, buff, nByte)                                         \
     {                                                                          \
@@ -63,15 +63,16 @@
        position.
        Place resulting string in resStr based on a given conditional. 
        resStr will be '\0' terminated.
-       fd     == int  , File descriptor corresponding to inBuf.
-       inBuf  == char*, buffer to copy from. Must not be NULL.
-       bfPl   == char*, the current location inside inBuf.
-       resStr == char*, buffer to copy to.
-       nbyte  == size_t, number of bytes to read, including room for '\0'. 
+       NOTE: Typically used in specific steps or in a while loop. 
+       - fd     == int  , File descriptor corresponding to inBuf.
+       - inBuf  == char*, buffer to copy from. Must not be NULL.
+       - bfPl   == char*, the current location inside inBuf.
+       - resStr == char*, buffer to copy to.
+       - nbyte  == size_t, number of bytes to read, including room for '\0'. 
                         (typically the size of buffer array)
-       conditional == The conditionals desired in the copy process.
+       - conditional == The conditionals desired in the copy process.
                       Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-    #define readBuff_strRet(fd, inBuf, bfPl, nByte, resStr, conditional)       \
+    #define read_nextFullFile(fd, inBuf, bfPl, nByte, resStr, conditional)     \
     {                                                                          \
         int _TM_ = 0;                                                          \
         assert(resStr != NULL && bfPl != NULL && inBuf != NULL);               \
@@ -170,7 +171,7 @@
          > uses the above macro getChar(input), not getchar from the standard
            lib. 
            TODO: I will consider changing getChars name in the future
-   - input  == char, string to check for Y/N.
+   - input  == char , string to check for Y/N.
    - string == char*, message to print to the user via printf();.
    - ...    == ending variable length arguments placed in printf(string,...);. */
 #define yesNo(input, string, ...)                                              \
@@ -189,7 +190,7 @@
    NOTE: Len becomes the length of the string WITHOUT the '\0' value.
    - input    == char* , Pointer to fill with resulting string.
    - max      == int   , Max number of bytes to take in from file. 
-   - filePntr == FILE*, the file pointer associated with the proper FD. 
+   - filePntr == FILE* , the file pointer associated with the proper FD. 
    - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
 #define fgetsInput(input, max, filePntr, inLen)                                \
 {                                                                              \
@@ -209,7 +210,7 @@
    NOTE: Len becomes the length of the string WITHOUT the '\0' value.
    - input    == char* , Pointer to fill with resulting string.
    - max      == int   , Max number of bytes to take in from file. 
-   - filePntr == FILE*, the file pointer associated with the proper FD. 
+   - filePntr == FILE* , the file pointer associated with the proper FD. 
    - inlen    == size_t, the length of the string WITHOUT the '\0' value. */
 #define fgetsInput_noClear(input, max, filePntr, inLen)                        \
 {                                                                              \
@@ -250,16 +251,17 @@
     Place resulting string in resStr based on a given conditional. 
     resStr will be '\0' terminated.
     NOTE: inLen will be the length of the current buffer WITHOUT '\0'
-    - filePntr    == FILE*  , File pointer corresponding to inBuf.
-    - inBuf       == char*, buffer to copy from. Must not be NULL.
+          Typically used in specific steps or in a while loop. 
+    - filePntr    == FILE* , File pointer corresponding to inBuf.
+    - inBuf       == char* , buffer to copy from. Must not be NULL.
     - max         == int   , Max number of bytes to take in from file.
-                           (typically the size of the buffer array)
-    - inLen       == the length of the string WITHOUT the '\0' value.
-    - bfPl        == char*, the current location inside inBuf.
-    - resStr      == char*, buffer to copy to.
+                             (typically the size of the buffer array)
+    - inLen       == size_t, the length of the string WITHOUT the '\0' value.
+    - bfPl        == char* , the current location inside inBuf.
+    - resStr      == char* , buffer to copy to.
     - conditional == The conditionals desired in the copy process.
                      Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-#define fgetsBuff_strRet(filePntr, inBuf, max, inLen, bfPl, resStr, conditional)\
+#define fgets_nextFullLine(filePntr, inBuf, max, inLen, bfPl, resStr, conditional)\
 {                                                                              \
     int _TM_ = 0;                                                              \
     assert(filePntr != NULL && resStr != NULL && bfPl != NULL && inBuf != NULL);\
@@ -287,16 +289,17 @@
     Place resulting string in resStr based on a given conditional. 
     resStr will be '\0' terminated.
     NOTE: inLen will be the length of the current buffer WITHOUT '\0'
+          Typically used in specific steps or in a while loop. 
     - filePntr  == FILE*  , File pointer corresponding to inBuf.
-    - inBuf     == char*, buffer to copy from. Must not be NULL.
-    - dataSize  == size_t, size of the data used in fread.
-    - nmemb     == size_t, Max number of elements of dataSize to take from file.
+    - inBuf     == char*  , buffer to copy from. Must not be NULL.
+    - dataSize  == size_t , size of the data used in fread.
+    - nmemb     == size_t , Max number of elements of dataSize to take from file.
                            (typically the size of the buffer array)
     - bfPl        == char*, the current location inside inBuf.
     - resStr      == char*, buffer to copy to.
     - conditional == The conditionals desired in the copy process.
                      Example: inBuf[i] != ' ' && inBuf[i] != '\n' */
-#define freadBuff_strRet(filePntr, inBuf, dataSize, nmemb, bfPl, resStr, conditional)\
+#define fread_nextFullFile(filePntr, inBuf, dataSize, nmemb, bfPl, resStr, conditional)\
 {                                                                              \
     int _TM_ = 0;                                                              \
     assert(filePntr != NULL && resStr != NULL && bfPl != NULL && inBuf != NULL);\
