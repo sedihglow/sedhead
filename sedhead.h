@@ -342,6 +342,20 @@
 }
 
                     /* other */
+/* resizes a given string into a properly sized array.
+   if res is allready allocated, it is up to programmer to have it as correct
+   size, otherwise proper size should be len+1.
+   Does not deallocate string.
+   - String, char*  == string to be resized.
+   - len   , size_t == length of string not including terminating '\0'.
+   - res   , char*  == resulting character pointer. */
+#define resize_string(string, len, res)                                        \
+{                                                                              \
+    assert(string != NULL);                                                    \
+    if(res == NULL){                                                           \
+        res = (char*) malloc(sizeof(char)*len+1);}                             \
+    strncpy(res, string, len+1);                                               \
+}
 
 /* Create a bit mask for a given range of bits. start, end. (lsb,msb).
    - start   == int, Which bit from bit 0 to start the mask.
