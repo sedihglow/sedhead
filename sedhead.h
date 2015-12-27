@@ -260,7 +260,7 @@
         {                                                                      \
             /* can ferror() tell you which error occured? Or is it just a      \
                general, yes some unknown error has occured? */                 \
-            if(ferror() != 0){                                                 \
+            if(ferror(fstream) != 0){                                          \
                 noerrExit("fread() failure.");}                                \
         }                                                                      \
 }
