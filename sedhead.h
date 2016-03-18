@@ -29,6 +29,10 @@
 /*#define NDEBUG*/
 #include <assert.h>
 
+#ifdef __SED_THREAD__
+    #include <pthread.h>
+#endif
+
 #ifdef __SED_ERR__
     #include "err_handle/err_handle.h"  /* Error handling functions. */
 #endif
